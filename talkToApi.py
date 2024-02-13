@@ -1,4 +1,4 @@
-import pytest
+
 import json
 import requests
 def test_stationary_combustion_api():
@@ -22,3 +22,4 @@ def make_request(): #api_key
     response = requests.get(f'{base_url}')
     return response
 
+test_stationary_combustion_api()
