@@ -69,19 +69,3 @@ async def get_stationary_combustion_timeseries()->dict:
     #p.legend.location = "top_left"
     return {"years": years, "co2":co2, "items":items}
 
-# Route to read an item
-@app.get("/stationaryCombustion/item/{id}", response_model=Item)
-def get_item_stationary_combustion(id: int):
-    cursor = conn.cursor()
-    query = "SELECT id, sourceId, description, areaInSqFt, fuelCombustion, fuelStatus, quantity, units, category, carbonEquivalent FROM stationaryComb WHERE id=%s"
-    cursor.execute(query, (id,))
-    item = cursor.fetchone()
-    print("item is "+str(item))
-    cursor.close()
-    if item is None:
-        raise HTTPException(status_code=404, detail="Item not found")
-    print("item is "+str(item))
-
-    # return item
-    return {"id": item[0], "sourceId": item[1], "description": item[2], "areaInSqFt":item[3],  "fuelCombustion": item[4], "fuelStatus": item[5], "quantity": item[6], "units": item[7], "category": item[8], "carbonEquivalent": item[9]}
-
