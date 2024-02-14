@@ -1,17 +1,14 @@
 # Importing the FastApi class
-import pymysql 
-
 from decimal import *
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-import pandas as pd 
 import json
-from math import sqrt
+import requests
 
-from app import app, conn
+from app import app
 
 
 class Item(BaseModel):
@@ -37,35 +34,32 @@ async def root() -> dict:
 
 # GET -- > Read Item 
 @app.get("/stationaryCombustion",response_model=list) 
-async def get_items_stationary_combustion() -> list:
-    print("ushakiz items ")
-    cursor = conn.cursor()
-    query = "SELECT id, sourceId, description, areaInSqFt, fuelCombustion, fuelStatus, quantity, units, category, carbonEquivalent FROM stationaryComb"
-    cursor.execute(query)
-    items = cursor.fetchall()
-    cursor.close()
-    print("items "+str(items))
-    return items
+async def get_stationary_combustion_analytics() -> list:
+    base_url = "http://35.173.120.161:8000/stationaryCombustion"
+    print(" request ")
+    response = requests.get(f'{base_url}')
+    assert response.status_code == 200  # Validation of status code  
+    rows = response.json()
+    print("++++++++++++++ stat comb rows",rows, len(rows), rows[0][0])
+    # Assertion of body response content:  
+    assert len(rows) > 0  
+    print("items "+str(rows))
+    return rows
 
 
 # GET -- > Read Time Series Data 
 @app.get("/stationaryCombustion/timeSeries") 
-async def get_stationary_combustion_timeseries()->dict:
-    print("ushakiz items - ")
-    cursor = conn.cursor()
-    query = "select CO2MetricTonnes, year from totalCO2Emissions where emissionType='StationaryCombustion' and biomass=0"
-    cursor.execute(query)
-    items = cursor.fetchall()
-    cursor.close()
-    co2 = [row[0] for row in items]
-    years = [row[1] for row in items]
-    #itemDF = pd.DataFrame(items, columns =['CO2MetricTonnes', 'year'])
-    #grouped = itemDF.groupby("year")
-    #co2 = grouped.CO2MetricTonnes
-    #avg, std = co2.mean(), co2.std()
-    #years = list(grouped.groups)
-    #p = Figure(title="CO2 in Metric Tonnes by Year")
-    #p.vbar(x=years, bottom=avg-std, top=avg+std, width=0.8,  fill_alpha=0.2, line_color=None, legend="CO2 stddev")
-    #p.legend.location = "top_left"
-    return {"years": years, "co2":co2, "items":items}
+async def get_stationary_combustion_timeseries_analytics()->dict:
+    base_url = "http://35.173.120.161:8000/stationaryCombustion/timeSeries"
+    print(" request ")
+    response = requests.get(f'{base_url}')
+    assert response.status_code == 200  # Validation of status code  
+    rows = response.json()
+    print("++++++++++++++ stat comb time series rows",rows, len(rows))
+    # Assertion of body response content:  
+    assert len(rows) > 0  
+    print("rows "+str(rows))
+    co2 = [row[0] for row in rows]
+    years = [row[1] for row in rows]
+    return {"years": years, "co2":co2, "rows":rows}
 
